@@ -1,0 +1,79 @@
+\newif\ifshowsolutions
+\showsolutionstrue
+\input{./preamble}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% HEADER
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chead{
+  {\vbox{
+      Machine Learning \& Data Mining \hfill
+      Caltech CS/CNS/EE 155 \hfill \\[1pt]
+      Miniproject 3\hfill
+      March 2023 \\
+    }
+  }
+}
+
+\begin{document}
+\pagestyle{fancy}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PROBLEM 1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+
+\section{Introduction [0 points]}
+\begin{itemize}
+    \item Group members:
+    \item Colab link:
+    \item Piazza link:
+    \item Division of labor:
+    \item Packages used:
+\end{itemize}
+
+You will need to choose one sonnet that you generate and share it with the rest of the class on Piazza under the tag {\tt project3}. Note that the poem that you submit on Piazza does not need to be from naive poem generation, and can be from a later improved HMM model or a recurrent model (see the next section). However, the poem that you submit must be computer-generated.
+
+\newpage
+
+\section{Pre-processing [15 points]}
+
+How will you tokenize the data set? What will consist of a singular sequence, a poem, a stanza, or a line? Do you keep some words tokenized as bigrams? Do you split hyphenated words? How will you handle punctuation? Explain your choices, as well as why you chose these choices initially. What was your final pre-processing? How did you tokenize your words, and split up the data into separate sequences? What changed as you continued on your project? What did you try that didn't work? Also write about any analysis you did on the dataset to help you make these decisions.
+
+\section{Unsupervised Learning [20 points]}
+
+Did you use your HW6 code? What packages did you use, if any? How did you choose the number of hidden states?
+
+\section{Poetry Generation [20 points]}
+
+In your report, describe your algorithm for generating the 14-line sonnet. As an example, include at least one sonnet generated from your unsupervised trained HMM. You should comment on the quality of geneating poems in this naive manner. How accurate is the rhyme, rythym, and syllable count, compared to what a sonnet should be? Do your poems make any sense? Do they retain Shakespeare's original voice? How does training with different numbers of hidden states affect the poems generated (in a qualitative manner)? For the good qualities that you describe, also discuss how you think the HMM was able to capture these qualities.
+
+\section{Additional Goals [10 points]}
+
+Alongside examples of poems generated, talk about the extra improvements you made to your poem generation algorithm. What problems were you trying to fix? How did you go about attempting to fix them? Why did you think that what you tried would work? Did your method succeed in making the sonnet more like a sonnet? If not, why do you think what you tried didn't work? What tradeoffs do you see in quality and creativity when you make these changes?
+
+Options:
+\begin{itemize}
+    \item Rhyme
+    \item Meter
+    \item Additional Texts
+    \item Other poetic forms
+    \item RNN/LSTM
+    \item Your own ideas
+\end{itemize}
+
+\section{Visualization and Interpretation [15 points]}
+
+In your report, you should explain your interpretation of how a Hidden Markov Model learns patterns in Shakespeare's texts. You should briefly elaborate on the methods you used to analyze the model. In addition, for at least 5 hidden states give a list of the top 10 words that associate with this hidden state and state any common features among these groups. Furthermore, try to interpret and visualize the learned transitions between states. A possible suggestion is to draw a transition diagram of your Markov model and give descriptive names to the states. Feel free to be creative with your visualizations, but remember that accurately representing data is still your primary objective. Your figures, tables, and diagrams should contribute to a discussion about your model.
+
+\section{Extra Credit [10 EC points]}
+
+Implement up to two additional goals for up to 10 extra credit points.
+
+\end{document}
