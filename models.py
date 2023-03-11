@@ -373,7 +373,7 @@ class HiddenMarkovModel:
                 for xt in range(self.D):
                     self.O[curr][xt] = O_num[curr][xt] / O_den[curr]
 
-    def generate_emission(self, M):
+    def generate_emission(self, M,start_state = None, end_token = None):
         '''
         Generates an emission of length M, assuming that the starting state
         is chosen uniformly at random.
@@ -388,7 +388,10 @@ class HiddenMarkovModel:
         '''
 
         emission = []
-        state = random.choice(range(self.L))
+        if start_state == None:
+            state = random.choice(range(self.L))
+        else:
+            state = start_state
         states = []
 
         for t in range(M):
@@ -404,6 +407,8 @@ class HiddenMarkovModel:
                 next_obs += 1
 
             next_obs -= 1
+            if next_obs == end_token:
+                break
             emission.append(next_obs)
 
             # Sample next state.
@@ -515,7 +520,7 @@ def supervised_HMM(X, Y):
     # Train an HMM with labeled data.
     HMM = HiddenMarkovModel(A, O)
     HMM.supervised_learning(X, Y)
-
+    print("\nUnsupervised Learning \n")
     return HMM
 
 

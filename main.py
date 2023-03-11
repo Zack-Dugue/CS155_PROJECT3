@@ -20,6 +20,7 @@ def load_and_tokenize_shakespeare():
         poem = poem.replace('?', ' ? ')
         poem = poem.replace(';', ' ; ')
         poem = poem.replace(';', ' ; ')
+        poem = poem.replace('!', ' ! ')
         poem = poem.replace('\n', ' \n ')
         poem = poem.replace('.',' . ')
         poem = poem.replace('(','')
@@ -55,9 +56,30 @@ def reverse_obs_map(tokens,vocab_list):
     '''For unmapping words back to real tokens'''
     unmapped_tokens = []
     for token in tokens:
-        unmapped_tokens.append(vocab_list(token))
+        unmapped_tokens.append(vocab_list[token])
     return unmapped_tokens
 
+def sample_sentence(hmm, vocab_list, max_words=1000):
+    # Get reverse map.
+
+    # Sample and convert sentence.
+    end_token = obs_map(['<STOP>'],vocab_list)[0]
+    emission, states = hmm.generate_emission(max_words,end_token=end_token)
+    sentence = emission
+    sentence = reverse_obs_map(sentence,vocab_list)
+    output = ' '.join(sentence).capitalize()
+    output = output.replace(' <start>','')
+    output = output.replace(' .','.')
+    output = output.replace(' ?','?')
+    output = output.replace(' ,',',')
+    output = output.replace(' :',':')
+    output = output.replace(' ;',';')
+    output = output.replace(' !','!')
+    output = output.replace(' \n ','\n')
+    print(output)
+    #TODO figure out how to output the sates as well,
+    #So that they also end at <STOP>
+    return output
 
 
 def load_and_tokenize_spenser():
@@ -97,9 +119,10 @@ def experiment():
     for tokens in token_list:
         mapped_token_list.append(obs_map(tokens, vocab_list))
 
-    model = models.unsupervised_HMM(mapped_token_list,8,100)
-    #TODO
-    pass
-
+    model = models.unsupervised_HMM(mapped_token_list,64,20)
+    for i in range(10):
+        print(f"Sentence {i}\n\n\n")
+        sample_sentence(model,vocab_list,300)
+    print("END OF PROGRAM")
 if __name__ == '__main__':
     experiment()
