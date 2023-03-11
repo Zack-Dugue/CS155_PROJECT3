@@ -1,7 +1,8 @@
 import torch as th
 import torch.nn as nn
-import torch.nn.Functional as F
-
+import torch.nn.functional as F
+import numpy as np
+import random
 #THE HMM FROM THE SOLUTION OF PROBLEM SET 6
 class HiddenMarkovModel:
     '''
@@ -301,10 +302,10 @@ class HiddenMarkovModel:
 
         # Similarly, a comment starting with 'M' refers to the fact that
         # the code under the comment is part of the M-step.
-
+        print("Unsupervised Learning Begins")
         for iteration in range(1, N_iters + 1):
-            if iteration % 10 == 0:
-                print("Iteration: " + str(iteration))
+            # if iteration % 10 == 0:
+            #     print("Iteration: " + str(iteration))
 
             # Numerator and denominator for the update terms of A and O.
             A_num = [[0. for i in range(self.L)] for j in range(self.L)]
@@ -313,7 +314,8 @@ class HiddenMarkovModel:
             O_den = [0. for i in range(self.L)]
 
             # For each input sequence:
-            for x in X:
+            for t,x in enumerate(X):
+                print(f"\rIteration {iteration}  - And Input {t}", end="")
                 M = len(x)
                 # Compute the alpha and beta probability vectors.
                 alphas = self.forward(x, normalize=True)
