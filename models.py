@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import random
+import torch.optim as optim
+import torch.utils.data as data_utils
 from embeding_utils import make_embedding
 #THE HMM FROM THE SOLUTION OF PROBLEM SET 6
 class HiddenMarkovModel:
@@ -585,6 +587,37 @@ class LSTM_Poet(nn.Module):
         # seq = self.encoder(seq)
         seq = self.embedding_model.embed(seq)
         seq = self.LSTM(seq)
-        seq = self.embedding_mode.de_embed(seq)
         return seq
 
+def LSTM_loss(y,y_hat):
+    return th.mean(-th.log(th.cosine_similarity(y,y_hat)))
+
+def train_LSTM(model,X,batch_size,num_epochs,lr):
+    '''
+
+    :param model: an LSTM model
+    :param X: a list of sequences
+    :param batch_size:
+    :param num_epochs:
+    :return:
+    '''
+    Y = [x[1:] for x in X]
+    X = [x[:-1] for x in X]
+    train_dataset = data_utils.TensorDataset(th.Tensor(X), th.Tensor(Y))
+    data = data_utils.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    optimizer = optim.Adam(model.LSTM.parameters(), lr)
+    loss_fun = LSTM_loss
+    for epoch in range(num_epochs):
+        avg_loss = 0
+        counter = 0
+        for x, y in data:
+            optimizer.zero_grad()
+            y_hat, _ = model(x)
+            loss = loss_fun(y_hat, y)
+            loss.backward()
+            optimizer.step()
+            avg_loss += loss
+            counter += 1
+        print(f"epoch - {epoch} avg_loss: {avg_loss / counter}")
+    print("Finished")
+    return model

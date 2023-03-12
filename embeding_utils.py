@@ -300,6 +300,7 @@ def find_most_similar_pairs(filename, num_latent_factors):
 def make_embedding(token_data, vocabulary,num_latent_factors=256):
     #Assumes that the token Data has already been converted into a one hot form.
     model = EmbedModel(len(vocabulary), embed_dim=num_latent_factors)
+    mega_list = []
     trainX, trainY = generate_traindata(token_data, vocabulary)
     embed_model = train(trainX, trainY, model)
     return embed_model
