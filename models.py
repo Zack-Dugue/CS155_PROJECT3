@@ -573,7 +573,15 @@ def unsupervised_HMM(X, n_states, N_iters, rng=np.random.RandomState(1)):
 
 class LSTM_Poet(nn.Module):
     '''An LSTM Implementation of our Poet'''
-    def __init__(self,):
+    def __init__(self,hidden_dim,embed_dim):
         super(LSTM_Poet, self).__init__()
-        # model_base = nn.LSTM()
-        pass
+        # self.encoder = nn.Linear(embed_dim, hidden_dim)
+        self.model_base = nn.LSTM(hidden_dim,num_layers = 2,batch_first=True)
+        # self.decoder = nn.Linear(hidden_dim,embed_dim)
+
+    def forward(self,seq):
+        # seq = self.encoder(seq)
+        seq = self.LSTM(seq)
+        # seq = nn.decoder(seq)
+        return seq
+

@@ -2,6 +2,7 @@
 from models import HiddenMarkovModel as HMM
 import models
 from collections import Counter
+from embeding_utils import make_embedding
 def load_and_tokenize_shakespeare():
     '''This Loads data from the shakespeare.txt file.
     It should return a list where each element is a poem.
@@ -119,7 +120,7 @@ def experiment():
     for tokens in token_list:
         mapped_token_list.append(obs_map(tokens, vocab_list))
 
-    model = models.unsupervised_HMM(mapped_token_list,64,20)
+    model = models.unsupervised_HMM(mapped_token_list,64,40)
     for i in range(10):
         print(f"Sentence {i}\n\n\n")
         sample_sentence(model,vocab_list,300)
