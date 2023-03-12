@@ -194,16 +194,26 @@ class EmbedModel(nn.Module):
     def __init__(self,vocab_size ,embed_dim = 10):
         super(EmbedModel, self).__init__()
         self.wI = nn.Linear(vocab_size,embed_dim)
-        # self.norm = nn.LayerNorm(embed_dim)
+        self.embed_dim = embed_dim
+        self.norm = nn.LayerNorm(embed_dim)
         self.wO = nn.Linear(embed_dim,vocab_size)
         self.out = nn.Softmax()
     def forward(self, x,inference=False):
         embedding = self.wI(x)
-        # embedding = self.norm(embedding)
+        embedding = self.norm(embedding)
         prediction = self.wO(embedding)
         if inference:
             prediction = self.softmax(prediction)
         return prediction, embedding
+    def embed(self,x,sigma=0):
+        embedding = self.wI(x)
+        embedding = self.norm(embedding)
+        if sigma != 0:
+            embedding += torch.randn_like(embedding)*sigma
+        return embedding
+    def de_embed(self,x):
+        dembed = self.wI(x)
+        return self.norm(x)
 
 
 class EmbedModel2(nn.Module):

@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import random
+from embeding_utils import make_embedding
 #THE HMM FROM THE SOLUTION OF PROBLEM SET 6
 class HiddenMarkovModel:
     '''
@@ -573,15 +574,17 @@ def unsupervised_HMM(X, n_states, N_iters, rng=np.random.RandomState(1)):
 
 class LSTM_Poet(nn.Module):
     '''An LSTM Implementation of our Poet'''
-    def __init__(self,hidden_dim,embed_dim):
+    def __init__(self,hidden_dim,embedding_model,embed_dim):
         super(LSTM_Poet, self).__init__()
         # self.encoder = nn.Linear(embed_dim, hidden_dim)
+        self.embedding_model = embedding_model
         self.model_base = nn.LSTM(hidden_dim,num_layers = 2,batch_first=True)
         # self.decoder = nn.Linear(hidden_dim,embed_dim)
 
     def forward(self,seq):
         # seq = self.encoder(seq)
+        seq = self.embedding_model.embed(seq)
         seq = self.LSTM(seq)
-        # seq = nn.decoder(seq)
+        seq = self.embedding_mode.de_embed(seq)
         return seq
 

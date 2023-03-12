@@ -125,5 +125,6 @@ def experiment():
         print(f"Sentence {i}\n\n\n")
         sample_sentence(model,vocab_list,300)
     print("END OF PROGRAM")
+
 if __name__ == '__main__':
     experiment()
