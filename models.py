@@ -583,7 +583,7 @@ class LSTM_Poet(nn.Module):
         super(LSTM_Poet, self).__init__()
         # self.encoder = nn.Linear(embed_dim, hidden_dim)
         self.embedding_model = embedding_model
-        self.model_base = nn.LSTM(hidden_dim,num_layers = 2,batch_first=True)
+        self.model_base = nn.LSTM(embed_dim, hidden_dim,num_layers = 2,batch_first=True)
         # self.decoder = nn.Linear(hidden_dim,embed_dim)
 
     def forward(self,seq):
@@ -591,36 +591,3 @@ class LSTM_Poet(nn.Module):
         seq = self.embedding_model.embed(seq)
         seq = self.LSTM(seq)
         return seq
-
-def LSTM_loss(y,y_hat):
-    return th.mean(-th.log(th.cosine_similarity(y,y_hat)))
-
-def train_LSTM(model,X,batch_size,num_epochs,lr):
-    '''
-
-    :param model: an LSTM model
-    :param X: a list of sequences
-    :param batch_size:
-    :param num_epochs:
-    :return:
-    '''
-    Y = [x[1:] for x in X]
-    X = [x[:-1] for x in X]
-    train_dataset = data_utils.TensorDataset(th.Tensor(X), th.Tensor(Y))
-    data = data_utils.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    optimizer = optim.Adam(model.LSTM.parameters(), lr)
-    loss_fun = LSTM_loss
-    for epoch in range(num_epochs):
-        avg_loss = 0
-        counter = 0
-        for x, y in data:
-            optimizer.zero_grad()
-            y_hat, _ = model(x)
-            loss = loss_fun(y_hat, y)
-            loss.backward()
-            optimizer.step()
-            avg_loss += loss
-            counter += 1
-        print(f"epoch - {epoch} avg_loss: {avg_loss / counter}")
-    print("Finished")
-    return model

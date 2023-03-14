@@ -1,9 +1,13 @@
 #THIS IS WHAT YOU RUN TO GET YOUR POEMS:
 from models import HiddenMarkovModel as HMM
 import models
+import torch as th
+import torch.nn as nn
+import torch.optim as optim
+import torch.utils.data as data_utils
 from collections import Counter
-from embeding_utils import make_embedding
-import gensim
+from embeding_utils import make_embed_model  , convert_text
+from word2vec import word2vec
 
 def load_and_tokenize_shakespeare():
     '''This Loads data from the shakespeare.txt file.
@@ -102,11 +106,40 @@ def train_HMM(tokens, model):
     #TODO JUST USE THEIR CODE.
     pass
 
-def train_LSTM(tokens, model):
-    '''train an LSTM on a set of tokens
-    Where the tokens are of the form outputed by load_and_tokenize'''
-    #TODO: ZACK WILL DO THIS
-    pass
+
+def LSTM_loss(y,y_hat):
+    return th.mean(-th.log(th.cosine_similarity(y,y_hat)))
+
+def train_LSTM(model,X,batch_size,num_epochs,lr):
+    '''
+
+    :param model: an LSTM model
+    :param X: a list of sequences
+    :param batch_size:
+    :param num_epochs:
+    :return:
+    '''
+    Y = [model.embedding_model.embed(x[1:]) for x in X]
+    X = [model.embedding_model.embed(x[:-1]) for x in X]
+    train_dataset = data_utils.TensorDataset(th.Tensor(X), th.Tensor(Y))
+    data = data_utils.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    optimizer = optim.Adam(model.LSTM.parameters(), lr)
+    loss_fun = LSTM_loss
+    for epoch in range(num_epochs):
+        avg_loss = 0
+        counter = 0
+        for x, y in data:
+            optimizer.zero_grad()
+            y_hat, _ = model(x)
+            loss = loss_fun(y_hat, y)
+            loss.backward()
+            optimizer.step()
+            avg_loss += loss
+            counter += 1
+        print(f"epoch - {epoch} avg_loss: {avg_loss / counter}")
+    print("Finished")
+    return model
+
 
 def visualize_HMM(model):
     '''Do wordclouds and stuff'''
@@ -129,6 +162,8 @@ def experiment():
         print(f"Sentence {i}\n\n\n")
         sample_sentence(model,vocab_list,300)
     print("END OF PROGRAM")
+
+
 
 if __name__ == '__main__':
     experiment()
