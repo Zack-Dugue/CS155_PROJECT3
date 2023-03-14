@@ -3,6 +3,8 @@ from models import HiddenMarkovModel as HMM
 import models
 from collections import Counter
 from embeding_utils import make_embedding
+import gensim
+
 def load_and_tokenize_shakespeare():
     '''This Loads data from the shakespeare.txt file.
     It should return a list where each element is a poem.
@@ -65,7 +67,8 @@ def sample_sentence(hmm, vocab_list, max_words=1000):
 
     # Sample and convert sentence.
     end_token = obs_map(['<STOP>'],vocab_list)[0]
-    emission, states = hmm.generate_emission(max_words,end_token=end_token)
+    start_token = obs_map(['<START>'],vocab_list)[0]
+    emission, states = hmm.generate_emission(max_words,start_token,end_token=end_token)
     sentence = emission
     sentence = reverse_obs_map(sentence,vocab_list)
     output = ' '.join(sentence).capitalize()
@@ -117,11 +120,12 @@ def experiment():
     token_list , vocab_list = load_and_tokenize_shakespeare()
     #Then map them s.t. each word is an integer
     mapped_token_list = []
+    mega_list = []
     for tokens in token_list:
         mapped_token_list.append(obs_map(tokens, vocab_list))
-
-    model = models.unsupervised_HMM(mapped_token_list,64,40)
-    for i in range(10):
+        mega_list.extend(obs_map(tokens, vocab_list))
+    model = models.unsupervised_HMM(mapped_token_list,64,50)
+    for i in range(40):
         print(f"Sentence {i}\n\n\n")
         sample_sentence(model,vocab_list,300)
     print("END OF PROGRAM")

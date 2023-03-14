@@ -394,7 +394,10 @@ class HiddenMarkovModel:
         if start_state == None:
             state = random.choice(range(self.L))
         else:
-            state = start_state
+            p = [np.exp(x[start_state]) for x in self.O ]
+            norm_const = sum(p)
+            p = [x /norm_const for x in p]
+            state = np.random.choice(self.L,p=p)
         states = []
 
         for t in range(M):
