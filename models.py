@@ -1,3 +1,4 @@
+import torch
 import torch as th
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,7 +6,6 @@ import numpy as np
 import random
 import torch.optim as optim
 import torch.utils.data as data_utils
-from embeding_utils import make_embedding
 #THE HMM FROM THE SOLUTION OF PROBLEM SET 6
 class HiddenMarkovModel:
     '''
@@ -583,11 +583,46 @@ class LSTM_Poet(nn.Module):
         super(LSTM_Poet, self).__init__()
         # self.encoder = nn.Linear(embed_dim, hidden_dim)
         self.embedding_model = embedding_model
-        self.model_base = nn.LSTM(embed_dim, hidden_dim,num_layers = 2,batch_first=True)
+        self.inproject = nn.Sequential(nn.Linear(embed_dim,2*hidden_dim), nn.GELU(),nn.Linear(2*hidden_dim,2*hidden_dim),nn.LayerNorm(2*hidden_dim))
+        self.model_base = nn.LSTM(2*hidden_dim, hidden_dim,num_layers = 2,batch_first=True)
+        self.out_project = nn.Sequential(nn.LayerNorm(hidden_dim), nn.Linear(hidden_dim,2*hidden_dim), nn.GELU(),nn.Linear(2*hidden_dim,embed_dim))
+        self.softmax = nn.Softmax(dim=1)
         # self.decoder = nn.Linear(hidden_dim,embed_dim)
 
-    def forward(self,seq):
+    def forward(self,seq,inference = False):
         # seq = self.encoder(seq)
-        seq = self.embedding_model.embed(seq)
-        seq = self.LSTM(seq)
+        if type(seq) == list:
+            seq = self.embedding_model.embed(seq).float()
+        seq = self.inproject(seq)
+        seq = self.model_base(seq)[0]
+        seq = self.out_project(seq)
+        if inference:
+         seq = self.softmax(seq)
         return seq
+
+    def sample_sentence(self,max_tokens = 1000):
+        token_list = ["<START>"]
+        last_token = token_list[-1]
+        counter = 0
+        while counter < max_tokens :
+            new_tokens = self.forward(token_list, inference=True)
+            last_token = new_tokens[-1]
+            last_token = torch.multinomial(last_token,1)[0]
+            last_token = self.embedding_model.unembed([last_token])
+            if last_token[0] == "<STOP>" or last_token[0] == "<stop>":
+                break
+            token_list.append(last_token[0])
+            counter += 1
+        output = ' '.join(token_list).capitalize()
+        output = output.replace('<START>', '')
+        output = output.replace('<start>', '')
+        output = output.replace(' .', '.')
+        output = output.replace(' ?', '?')
+        output = output.replace(' ,', ',')
+        output = output.replace(' :', ':')
+        output = output.replace(' ;', ';')
+        output = output.replace(' !', '!')
+        output = output.replace(' \n ', '\n')
+        print(output)
+
+        return token_list
