@@ -1,4 +1,5 @@
 #THIS IS WHAT YOU RUN TO GET YOUR POEMS:
+import re
 from models import HiddenMarkovModel as HMM
 import models
 import torch as th
@@ -6,8 +7,12 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data_utils
 from collections import Counter
+import random
 # from embeding_utils import make_embed_model  , convert_text
-# from word2vec import word2vec
+# from gensim.models import word2vec
+from wordcloud import WordCloud
+import numpy as np
+import matplotlib.pyplot as plt
 
 def load_and_tokenize_shakespeare():
     '''This Loads data from the shakespeare.txt file.
@@ -195,6 +200,15 @@ def sample_sentence(hmm, vocab_list, max_words=1000):
     return output
 
 
+def load_and_tokenize_spenser():
+    '''This Loads data from the spenser.txt file.
+    It should return a list where each element is a poem.
+    That poem should be tokenized (ie it is a list where
+    each element is a token. Each poem starts with
+    the <START> token and ends with the <STOP> token.'''
+    pass
+    #TODO PROBABLY BASED ON SHAKESPEARE VERSION
+
 def train_HMM(tokens, model):
     '''train an HMM on a set of tokens
     Where the tokens are of the form outputed by load_and_tokenize'''
@@ -237,24 +251,121 @@ def train_LSTM(model,X,batch_size,num_epochs,lr):
     print("Finished")
     return model
 
+def mask():
+    # Parameters.
+    r = 128
+    d = 2 * r + 1
 
-def visualize_HMM(model):
-    '''Do wordclouds and stuff'''
-    #TODO
-    pass
+    # Get points in a circle.
+    y, x = np.ogrid[-r:d-r, -r:d-r]
+    circle = (x**2 + y**2 <= r**2)
+
+    # Create mask.
+    mask = 255 * np.ones((d, d), dtype=np.uint8)
+    mask[circle] = 0
+
+    return mask
+
+def text_to_wordcloud(text, max_words=50, title='', show=True):
+    plt.close('all')
+
+    # Generate a wordcloud image.
+    wordcloud = WordCloud(random_state=0,
+                          max_words=max_words,
+                          background_color='white',
+                          mask=mask()).generate(text)
+
+    # Show the image.
+    if show:
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis('off')
+        plt.title(title, fontsize=24)
+        plt.show()
+        # save the image
+        wordcloud.to_file(f"wordcloud_{title}.png")
+
+    return wordcloud
+def parse_observations(text):
+    # Convert text to dataset.
+    lines = [line.split() for line in text.split('\n') if line.split()]
+
+    obs_counter = 0
+    obs = []
+    obs_map = {}
+
+    for line in lines:
+        obs_elem = []
+
+        for word in line:
+            word = re.sub(r'[^\w]', '', word).lower()
+            if word not in obs_map:
+                # Add unique words to the observations map.
+                obs_map[word] = obs_counter
+                obs_counter += 1
+
+            # Add the encoded word.
+            obs_elem.append(obs_map[word])
+
+        # Add the encoded sequence.
+        obs.append(obs_elem)
+
+    return obs, obs_map
+
+def obs_map_reverser(obs_map):
+    obs_map_r = {}
+
+    for key in obs_map:
+        obs_map_r[obs_map[key]] = key
+
+    return obs_map_r
+
+def states_to_wordclouds(hmm, obs_map, max_words=50, show=True):
+    # Initialize.
+    M = 100000
+    n_states = len(hmm.A)
+    obs_map_r = obs_map_reverser(obs_map)
+    wordclouds = []
+
+    # Generate a large emission.
+    emission, states = hmm.generate_emission(M)
+
+    # For each state, get a list of observations that have been emitted
+    # from that state.
+    obs_count = []
+    for i in range(n_states):
+        obs_lst = np.array(emission)[np.where(np.array(states) == i )[0]]
+        # remove any numbers above 2000
+        obs_lst = obs_lst[obs_lst < 2000]
+        obs_count.append(obs_lst)
+
+    # For each state, convert it into a wordcloud.
+    for i in range(n_states):
+        obs_lst = obs_count[i]
+        sentence = [obs_map_r[j] for j in obs_lst]
+        sentence_str = ' '.join(sentence)
+
+        wordclouds.append(text_to_wordcloud(sentence_str, max_words=max_words, title='State %d' % i, show=show))
+
+    return wordclouds
+
 
 def experiment():
     '''Makes the Model, Trains the Model, Outputs some poem
     examples, then outputs some visualizations.'''
     #Load the tokens from Shakespeare
-    token_list , vocab_list = load_and_tokenize_spencer()
+    token_list , vocab_list = load_and_tokenize_shakespeare()
     #Then map them s.t. each word is an integer
     mapped_token_list = []
-    for poem in token_list :
-        mapped_token_list.append(obs_map(poem,vocab_list))
-    model = models.unsupervised_HMM(mapped_token_list,16,30)
+    mega_list = []
+    for tokens in token_list:
+        mapped_token_list.append(obs_map(tokens, vocab_list))
+        mega_list.extend(obs_map(tokens, vocab_list))
+    model = models.unsupervised_HMM(mapped_token_list,5,20)
+    text = text_to_wordcloud(" ".join(vocab_list), show=False)
+    obs, obs_mape = parse_observations(" ".join(vocab_list))
+    states_to_wordclouds(model, obs_mape)
     for i in range(40):
-        print(f"\n\nSentence {i}\n")
+        print(f"Sentence {i}\n\n\n")
         sample_sentence(model,vocab_list,300)
     print("END OF PROGRAM")
 
@@ -269,4 +380,4 @@ def lstm_experiment():
         model.sample_sentence(500)
 
 if __name__ == '__main__':
-    lstm_experiment()
+    experiment()
